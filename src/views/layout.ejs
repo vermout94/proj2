@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= title %> - Drone Management</title>
+    <link rel="stylesheet" href="/public/css/main.css" />
+</head>
+<body>
+<% if (showTopNav && user) { %>
+    <header class="topbar">
+        <div class="topbar__brand">Drone Management</div>
+        <nav class="topbar__nav">
+            <a class="navlink <%= (activeNav === 'dashboard') ? 'navlink--active' : '' %>" href="/dashboard">Dashboard</a>
+            <a class="navlink <%= (activeNav === 'my_drones') ? 'navlink--active' : '' %>" href="/my-drones">My Drones</a>
+            <% if (isAdmin) { %>
+                <a class="navlink <%= (activeNav === 'users') ? 'navlink--active' : '' %>" href="/admin/users">Users</a>
+                <a class="navlink <%= (activeNav === 'drones') ? 'navlink--active' : '' %>" href="/admin/drones">Drones</a>
+            <% } %>
+            <span class="userpill"><%= user.username %> (<%= user.role %>)</span>
+            <form method="post" action="/logout">
+                <%- include('partials/csrf_input') %>
+                <button class="btn btn--secondary" type="submit">Logout</button>
+            </form>
+        </nav>
+    </header>
+<% } %>
+
+<main class="container">
+    <% if (contentView) { %>
+        <%- include(contentView, contentData) %>
+    <% } else { %>
+        <section class="card">
+            <h1><%= contentData.heading || 'Page' %></h1>
+            <p><%= contentData.message || '' %></p>
+        </section>
+    <% } %>
+</main>
+</body>
+</html>

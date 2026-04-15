@@ -1,0 +1,95 @@
+<section class="card">
+    <h1>Drone: <%= drone.drone_id %></h1>
+    <p><a href="/my-drones">Back to list</a></p>
+
+    <%
+    const success_msgs = ['action_placeholder'];
+    const error_msgs = ['full_access_required', 'drone_inactive', 'drone_locked', 'server_error'];
+    const msg_code = String(msg || '');
+    const is_success = success_msgs.includes(msg_code);
+    const is_error = error_msgs.includes(msg_code);
+    %>
+
+    <% if (msg_code) { %>
+        <div class="alert <%= is_success ? 'alert--ok' : (is_error ? 'alert--error' : '') %>">
+            <% if (msg_code === 'action_placeholder') { %>Action accepted for Step 6 placeholder. Real command transport will be added with websocket integration.<% } %>
+            <% if (msg_code === 'full_access_required') { %>This action requires `full` access.<% } %>
+            <% if (msg_code === 'drone_inactive') { %>This drone is inactive; action blocked.<% } %>
+            <% if (msg_code === 'drone_locked') { %>This drone is locked; tuning and step response are blocked.<% } %>
+            <% if (msg_code === 'server_error') { %>Server error while processing action.<% } %>
+        </div>
+    <% } %>
+
+    <section class="panel">
+        <h2>Access and State</h2>
+        <div class="kv-grid">
+            <div><strong>Access level:</strong> <%= access_level %></div>
+            <div><strong>Display name:</strong> <%= drone.display_name ? drone.display_name : '-' %></div>
+            <div><strong>Connected:</strong> <%= Number(drone.is_connected) === 1 ? 'yes' : 'no' %></div>
+            <div><strong>Active:</strong> <%= Number(drone.is_active) === 1 ? 'yes' : 'no' %></div>
+            <div><strong>Locked:</strong> <%= Number(drone.is_locked) === 1 ? 'yes' : 'no' %></div>
+            <div><strong>Last seen:</strong> <%= drone.last_seen_at ? String(drone.last_seen_at) : 'n/a' %></div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Summary</h2>
+        <div class="kv-grid">
+            <div><strong>Telemetry frames:</strong> <%= summary.telemetry_count %></div>
+            <div><strong>Step runs:</strong> <%= summary.step_run_count %></div>
+            <div><strong>Latest telemetry:</strong> <%= summary.latest_telemetry ? String(summary.latest_telemetry.received_at) : 'n/a' %></div>
+            <div><strong>Latest valid:</strong> <%= summary.latest_telemetry ? (Number(summary.latest_telemetry.is_valid) === 1 ? 'yes' : 'no') : 'n/a' %></div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Control Parameters</h2>
+        <% if (!parameters) { %>
+            <p class="muted">No control parameter row found.</p>
+        <% } else { %>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Axis</th>
+                        <th>P</th>
+                        <th>I</th>
+                        <th>D</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr><td>Angle Roll</td><td><%= parameters.kp_ar %></td><td><%= parameters.ki_ar %></td><td><%= parameters.kd_ar %></td></tr>
+                    <tr><td>Angle Pitch</td><td><%= parameters.kp_ap %></td><td><%= parameters.ki_ap %></td><td><%= parameters.kd_ap %></td></tr>
+                    <tr><td>Rate Roll</td><td><%= parameters.kp_rr %></td><td><%= parameters.ki_rr %></td><td><%= parameters.kd_rr %></td></tr>
+                    <tr><td>Rate Pitch</td><td><%= parameters.kp_rp %></td><td><%= parameters.ki_rp %></td><td><%= parameters.kd_rp %></td></tr>
+                    <tr><td>Rate Yaw</td><td><%= parameters.kp_ry %></td><td><%= parameters.ki_ry %></td><td><%= parameters.kd_ry %></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="small muted">Source: <%= parameters.source %>, updated: <%= parameters.updated_at ? String(parameters.updated_at) : 'n/a' %></p>
+        <% } %>
+    </section>
+
+    <section class="panel">
+        <h2>Actions</h2>
+        <p class="small muted">Step 6 provides permission-aware placeholders. Real command execution will be wired in websocket step.</p>
+        <div class="actions-row">
+            <form method="post" action="/my-drones/<%= encodeURIComponent(drone.drone_id) %>/actions/reboot">
+                <%- include('partials/csrf_input') %>
+                <button class="btn btn--secondary" type="submit" <%= can_full_control ? '' : 'disabled' %>>Reboot Drone</button>
+            </form>
+            <form method="post" action="/my-drones/<%= encodeURIComponent(drone.drone_id) %>/actions/reconnect">
+                <%- include('partials/csrf_input') %>
+                <button class="btn btn--secondary" type="submit" <%= can_full_control ? '' : 'disabled' %>>Reconnect Drone</button>
+            </form>
+            <form method="post" action="/my-drones/<%= encodeURIComponent(drone.drone_id) %>/actions/tune">
+                <%- include('partials/csrf_input') %>
+                <button class="btn btn--secondary" type="submit" <%= can_full_control ? '' : 'disabled' %>>Tune (placeholder)</button>
+            </form>
+            <form method="post" action="/my-drones/<%= encodeURIComponent(drone.drone_id) %>/actions/step_response">
+                <%- include('partials/csrf_input') %>
+                <button class="btn btn--secondary" type="submit" <%= can_full_control ? '' : 'disabled' %>>Step Response (placeholder)</button>
+            </form>
+        </div>
+    </section>
+</section>

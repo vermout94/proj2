@@ -1,0 +1,213 @@
+<section class="card">
+    <h1>User Management</h1>
+    <p>Role-based controls are active. Super admin has full management rights. Admin can manage user status for user accounts and drone access for admin and user accounts.</p>
+
+    <%
+    const success_msgs = ['created_invite_sent', 'invite_resent', 'role_updated', 'status_updated', 'password_updated', 'deleted', 'drone_access_updated', 'drone_access_removed'];
+    const error_msgs = ['create_invalid', 'duplicate', 'not_found', 'protected', 'forbidden_target', 'self_blocked', 'password_invalid', 'missing_drone', 'drone_not_found', 'invite_target_inactive', 'created_invite_not_sent', 'invite_resend_not_sent', 'server_error'];
+    const msg_code = String(msg || '');
+    const is_success = success_msgs.includes(msg_code);
+    const is_error = error_msgs.includes(msg_code);
+    const access_by_user_safe = access_by_user || {};
+    const drone_options = Array.isArray(drones) ? drones : [];
+    const is_super_admin_viewer = (viewer_role === 'super_admin');
+    %>
+
+    <% if (msg_code) { %>
+        <div class="alert <%= is_success ? 'alert--ok' : (is_error ? 'alert--error' : '') %>">
+            <% if (msg_code === 'created_invite_sent') { %>User created and invite email sent.<% } %>
+            <% if (msg_code === 'invite_resent') { %>Invite email sent again.<% } %>
+            <% if (msg_code === 'role_updated') { %>Role updated.<% } %>
+            <% if (msg_code === 'status_updated') { %>Status updated.<% } %>
+            <% if (msg_code === 'password_updated') { %>Password updated.<% } %>
+            <% if (msg_code === 'deleted') { %>User deleted.<% } %>
+            <% if (msg_code === 'drone_access_updated') { %>Drone access saved.<% } %>
+            <% if (msg_code === 'drone_access_removed') { %>Drone access removed.<% } %>
+
+            <% if (msg_code === 'create_invalid') { %>Create failed: invalid username/email.<% } %>
+            <% if (msg_code === 'duplicate') { %>Create failed: username or email already exists.<% } %>
+            <% if (msg_code === 'not_found') { %>Target user not found.<% } %>
+            <% if (msg_code === 'protected') { %>Action blocked for protected/super-admin account.<% } %>
+            <% if (msg_code === 'forbidden_target') { %>Action not allowed for this target account.<% } %>
+            <% if (msg_code === 'self_blocked') { %>Action blocked on your own account.<% } %>
+            <% if (msg_code === 'password_invalid') { %>Password is too short.<% } %>
+            <% if (msg_code === 'missing_drone') { %>Drone id is missing.<% } %>
+            <% if (msg_code === 'drone_not_found') { %>Drone not found.<% } %>
+            <% if (msg_code === 'invite_target_inactive') { %>Invite cannot be sent while user is suspended.<% } %>
+            <% if (msg_code === 'created_invite_not_sent') { %>User created, but invite email could not be sent (SMTP not configured or mail failed).<% } %>
+            <% if (msg_code === 'invite_resend_not_sent') { %>Invite resend failed (SMTP not configured or mail failed).<% } %>
+            <% if (msg_code === 'server_error') { %>Server error.<% } %>
+        </div>
+    <% } %>
+
+    <% if (is_super_admin_viewer) { %>
+        <section class="panel">
+            <h2>Create User</h2>
+            <form method="post" action="/admin/users/create" class="form form-grid-2">
+                <%- include('partials/csrf_input') %>
+                <div>
+                    <label for="new_username">Username</label>
+                    <input id="new_username" name="username" type="text" required />
+                </div>
+                <div>
+                    <label for="new_email">Email</label>
+                    <input id="new_email" name="email" type="email" required />
+                </div>
+                <div>
+                    <label for="new_role">Role</label>
+                    <select id="new_role" name="role">
+                        <option value="user">user</option>
+                        <option value="admin">admin</option>
+                    </select>
+                </div>
+                <div class="muted small">
+                    The user will receive an invite email and set the password independently.
+                </div>
+                <div class="span-2">
+                    <button class="btn" type="submit">Create and Send Invite</button>
+                </div>
+            </form>
+        </section>
+    <% } %>
+
+    <section class="panel">
+        <h2>Users</h2>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                    <th>Drone Access</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% users.forEach(function(u) { %>
+                    <%
+                    const user_id = Number(u.id);
+                    const role = String(u.role || '');
+                    const status = String(u.status || '');
+                    const is_protected = Number(u.is_protected) === 1;
+                    const is_self = (Number(viewer_user_id) === user_id);
+                    const is_target_user_role = (role === 'user');
+                    const admin_can_change_status_target = (viewer_role === 'admin' && is_target_user_role && !is_protected && !is_self);
+                    const admin_can_manage_drone_access_target =
+                        (viewer_role === 'admin' && !is_protected && role !== 'super_admin' && (role === 'admin' || role === 'user'));
+                    const super_can_modify_target = (viewer_role === 'super_admin' && !is_protected && role !== 'super_admin' && !is_self);
+                    const may_change_status = admin_can_change_status_target || super_can_modify_target;
+                    const may_change_role = super_can_modify_target;
+                    const may_change_password = super_can_modify_target;
+                    const may_delete = super_can_modify_target;
+                    const may_manage_drone_access = admin_can_manage_drone_access_target || super_can_modify_target;
+                    const access_list = access_by_user_safe[String(user_id)] || [];
+                    %>
+                    <tr>
+                        <td><%= user_id %></td>
+                        <td><%= u.username %></td>
+                        <td><%= u.email %></td>
+                        <td>
+                            <% if (may_change_role) { %>
+                                <form method="post" action="/admin/users/<%= user_id %>/role" class="inline-form">
+                                    <%- include('partials/csrf_input') %>
+                                    <select name="role">
+                                        <option value="user" <%= (role === 'user') ? 'selected' : '' %>>user</option>
+                                        <option value="admin" <%= (role === 'admin') ? 'selected' : '' %>>admin</option>
+                                    </select>
+                                    <button class="btn btn--secondary" type="submit">Save</button>
+                                </form>
+                            <% } else { %>
+                                <span><%= role %></span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (may_change_status) { %>
+                                <form method="post" action="/admin/users/<%= user_id %>/status" class="inline-form">
+                                    <%- include('partials/csrf_input') %>
+                                    <select name="status">
+                                        <option value="active" <%= (status === 'active') ? 'selected' : '' %>>active</option>
+                                        <option value="suspended" <%= (status === 'suspended') ? 'selected' : '' %>>suspended</option>
+                                    </select>
+                                    <button class="btn btn--secondary" type="submit">Save</button>
+                                </form>
+                            <% } else { %>
+                                <span><%= status %></span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <div class="stack-actions">
+                                <% if (is_protected || role === 'super_admin') { %>
+                                    <span class="badge">protected</span>
+                                <% } %>
+                                <% if (is_self) { %>
+                                    <span class="badge">self</span>
+                                <% } %>
+                                <% if (may_change_password) { %>
+                                    <form method="post" action="/admin/users/<%= user_id %>/password" class="inline-form">
+                                        <%- include('partials/csrf_input') %>
+                                        <input name="password" type="password" minlength="<%= min_password_length %>" placeholder="new password" required />
+                                        <button class="btn btn--secondary" type="submit">Set Password</button>
+                                    </form>
+                                    <form method="post" action="/admin/users/<%= user_id %>/resend-invite">
+                                        <%- include('partials/csrf_input') %>
+                                        <button class="btn btn--secondary" type="submit">Resend Invite</button>
+                                    </form>
+                                <% } %>
+                                <% if (may_delete) { %>
+                                    <form method="post" action="/admin/users/<%= user_id %>/delete" onsubmit="return confirm('Delete this user?');">
+                                        <%- include('partials/csrf_input') %>
+                                        <button class="btn btn--danger" type="submit">Delete</button>
+                                    </form>
+                                <% } %>
+                            </div>
+                        </td>
+                        <td>
+                            <% if (may_manage_drone_access) { %>
+                                <% if (access_list.length === 0) { %>
+                                    <div class="muted small">No assigned drones.</div>
+                                <% } else { %>
+                                    <div class="assignment-list">
+                                        <% access_list.forEach(function(a) { %>
+                                            <div class="assignment-item">
+                                                <span>
+                                                    <strong><%= a.drone_id %></strong>
+                                                    (<%= a.access_level %>)
+                                                </span>
+                                                <form method="post" action="/admin/users/<%= user_id %>/drone-access/remove">
+                                                    <%- include('partials/csrf_input') %>
+                                                    <input type="hidden" name="drone_id" value="<%= a.drone_id %>" />
+                                                    <button class="btn btn--secondary" type="submit">Remove</button>
+                                                </form>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } %>
+                                <form method="post" action="/admin/users/<%= user_id %>/drone-access" class="inline-form mt1">
+                                    <%- include('partials/csrf_input') %>
+                                    <select name="drone_id" required>
+                                        <% drone_options.forEach(function(d) { %>
+                                            <option value="<%= d.drone_id %>">
+                                                <%= d.drone_id %><%= d.display_name ? ' - ' + d.display_name : '' %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                    <select name="access_level">
+                                        <option value="read">read</option>
+                                        <option value="full">full</option>
+                                    </select>
+                                    <button class="btn btn--secondary" type="submit">Assign</button>
+                                </form>
+                            <% } else { %>
+                                <span class="muted small">Not editable for your role.</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

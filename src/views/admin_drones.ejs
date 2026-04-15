@@ -1,0 +1,151 @@
+<section class="card">
+    <h1>Drone Management</h1>
+    <p>Admins and super admins can manage drone lifecycle, token rotation, activation, and lock state.</p>
+
+    <%
+    const success_msgs = ['created', 'renamed', 'activated', 'deactivated', 'locked', 'unlocked', 'token_rotated', 'deleted'];
+    const error_msgs = ['bad_id', 'bad_name', 'exists', 'not_found', 'connected', 'server_error'];
+    const msg_code = String(msg || '');
+    const is_success = success_msgs.includes(msg_code);
+    const is_error = error_msgs.includes(msg_code);
+    const drones_safe = Array.isArray(drones) ? drones : [];
+    %>
+
+    <% if (created_token && created_token.drone_token) { %>
+        <div class="alert alert--ok">
+            Drone <strong><%= created_token.drone_id %></strong> created. Token (copy now, shown once):
+            <code class="token"><%= created_token.drone_token %></code>
+        </div>
+    <% } %>
+
+    <% if (rotated_token && rotated_token.drone_token) { %>
+        <div class="alert alert--ok">
+            Token rotated for <strong><%= rotated_token.drone_id %></strong>. New token (copy now, shown once):
+            <code class="token"><%= rotated_token.drone_token %></code>
+        </div>
+    <% } %>
+
+    <% if (msg_code) { %>
+        <div class="alert <%= is_success ? 'alert--ok' : (is_error ? 'alert--error' : '') %>">
+            <% if (msg_code === 'created') { %>Drone created.<% } %>
+            <% if (msg_code === 'renamed') { %>Drone renamed.<% } %>
+            <% if (msg_code === 'activated') { %>Drone activated.<% } %>
+            <% if (msg_code === 'deactivated') { %>Drone deactivated.<% } %>
+            <% if (msg_code === 'locked') { %>Drone locked.<% } %>
+            <% if (msg_code === 'unlocked') { %>Drone unlocked.<% } %>
+            <% if (msg_code === 'token_rotated') { %>Token rotated.<% } %>
+            <% if (msg_code === 'deleted') { %>Drone deleted.<% } %>
+
+            <% if (msg_code === 'bad_id') { %>Invalid drone id. Allowed: A-Z a-z 0-9 _ - (3..32).<% } %>
+            <% if (msg_code === 'bad_name') { %>Invalid display name (max length 64).<% } %>
+            <% if (msg_code === 'exists') { %>Drone already exists.<% } %>
+            <% if (msg_code === 'not_found') { %>Drone not found.<% } %>
+            <% if (msg_code === 'connected') { %>Action blocked while drone is connected.<% } %>
+            <% if (msg_code === 'server_error') { %>Server error.<% } %>
+        </div>
+    <% } %>
+
+    <section class="panel">
+        <h2>Create Drone</h2>
+        <form method="post" action="/admin/drones/create" class="form form-grid-2">
+            <%- include('partials/csrf_input') %>
+            <div>
+                <label for="drone_id">Drone ID</label>
+                <input id="drone_id" name="drone_id" type="text" placeholder="e.g. FLARE_XIAO_01" required />
+            </div>
+            <div>
+                <label for="display_name">Display Name (optional)</label>
+                <input id="display_name" name="display_name" type="text" maxlength="64" />
+            </div>
+            <div class="span-2">
+                <button class="btn" type="submit">Create Drone</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Drones</h2>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Drone ID</th>
+                    <th>Display Name</th>
+                    <th>Connection</th>
+                    <th>State</th>
+                    <th>Assigned Users</th>
+                    <th>Last Seen</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% drones_safe.forEach(function(d) { %>
+                    <%
+                    const is_connected = Number(d.is_connected) === 1;
+                    const is_active = Number(d.is_active) === 1;
+                    const is_locked = Number(d.is_locked) === 1;
+                    const last_seen_text = d.last_seen_at ? String(d.last_seen_at) : 'n/a';
+                    %>
+                    <tr>
+                        <td><strong><%= d.drone_id %></strong></td>
+                        <td>
+                            <form method="post" action="/admin/drones/<%= encodeURIComponent(d.drone_id) %>/rename" class="inline-form">
+                                <%- include('partials/csrf_input') %>
+                                <input
+                                    name="display_name"
+                                    type="text"
+                                    maxlength="64"
+                                    value="<%= d.display_name ? d.display_name : '' %>"
+                                    placeholder="display name"
+                                />
+                                <button class="btn btn--secondary" type="submit">Rename</button>
+                            </form>
+                        </td>
+                        <td>
+                            <% if (is_connected) { %>
+                                <span class="badge badge--ok">Connected</span>
+                            <% } else { %>
+                                <span class="badge badge--off">Disconnected</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <div class="stack-actions">
+                                <span class="small">
+                                    Active: <strong><%= is_active ? 'yes' : 'no' %></strong>
+                                </span>
+                                <span class="small">
+                                    Locked: <strong><%= is_locked ? 'yes' : 'no' %></strong>
+                                </span>
+                                <form method="post" action="/admin/drones/<%= encodeURIComponent(d.drone_id) %>/active">
+                                    <%- include('partials/csrf_input') %>
+                                    <input type="hidden" name="is_active" value="<%= is_active ? '0' : '1' %>" />
+                                    <button class="btn btn--secondary" type="submit"><%= is_active ? 'Deactivate' : 'Activate' %></button>
+                                </form>
+                                <form method="post" action="/admin/drones/<%= encodeURIComponent(d.drone_id) %>/lock">
+                                    <%- include('partials/csrf_input') %>
+                                    <input type="hidden" name="is_locked" value="<%= is_locked ? '0' : '1' %>" />
+                                    <button class="btn btn--secondary" type="submit"><%= is_locked ? 'Unlock' : 'Lock' %></button>
+                                </form>
+                            </div>
+                        </td>
+                        <td><%= Number(d.assigned_user_count || 0) %></td>
+                        <td><span class="small"><%= last_seen_text %></span></td>
+                        <td>
+                            <div class="stack-actions">
+                                <form method="post" action="/admin/drones/<%= encodeURIComponent(d.drone_id) %>/rotate-token" onsubmit="return confirm('Rotate token for this drone?');">
+                                    <%- include('partials/csrf_input') %>
+                                    <button class="btn btn--secondary" type="submit">Rotate Token</button>
+                                </form>
+                                <form method="post" action="/admin/drones/<%= encodeURIComponent(d.drone_id) %>/delete" onsubmit="return confirm('Delete this drone and its history?');">
+                                    <%- include('partials/csrf_input') %>
+                                    <button class="btn btn--danger" type="submit">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

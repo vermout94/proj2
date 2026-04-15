@@ -1,0 +1,14 @@
+<section class="card">
+    <h1>Dashboard</h1>
+    <p>Authentication and role handling are active. Admin tools for users and drones are available.</p>
+
+    <div class="panel">
+        <p><strong>Current role:</strong> <%= role %></p>
+        <p><strong>Status:</strong> authenticated session works.</p>
+        <p><a href="/my-drones">Open My Drones</a></p>
+        <% if (role === 'admin' || role === 'super_admin') { %>
+            <p><a href="/admin/users">Open User Management</a></p>
+            <p><a href="/admin/drones">Open Drone Management</a></p>
+        <% } %>
+    </div>
+</section>

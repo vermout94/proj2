@@ -1,0 +1,287 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f8;
+    color: #1a1a1a;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.25rem;
+    background: #0f2742;
+    color: #fff;
+}
+
+.topbar__brand {
+    font-weight: 600;
+}
+
+.topbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.navlink {
+    color: #cde1ff;
+    text-decoration: none;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+}
+
+.navlink:hover,
+.navlink--active {
+    background: #1f3f63;
+    color: #fff;
+}
+
+.userpill {
+    font-size: 0.9rem;
+    color: #e2edff;
+}
+
+.container {
+    /*max-width: 860px;*/
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #d9e0e6;
+    border-radius: 10px;
+    padding: 1.25rem;
+}
+
+.card-small {
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.form {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.form input {
+    width: 100%;
+    border: 1px solid #c5d1dc;
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+}
+
+.form select {
+    width: 100%;
+    border: 1px solid #c5d1dc;
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+    background: #fff;
+}
+
+.btn {
+    border: 1px solid #184f90;
+    background: #1f66ba;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.55rem 0.9rem;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #18569f;
+}
+
+.btn--secondary {
+    border-color: #9cb0c2;
+    background: #fff;
+    color: #1c2f44;
+}
+
+.btn--secondary:hover {
+    background: #f2f7fb;
+}
+
+.alert {
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.alert--error {
+    background: #ffe9e9;
+    border: 1px solid #e6b2b2;
+    color: #801f1f;
+}
+
+.alert--ok {
+    background: #e9f8ec;
+    border: 1px solid #b8e0c0;
+    color: #1f6f37;
+}
+
+.mt1 {
+    margin-top: 1rem;
+}
+
+.panel {
+    margin-top: 1rem;
+    border: 1px solid #dfe7ee;
+    border-radius: 8px;
+    background: #f9fbfd;
+    padding: 0.8rem;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 0.55rem;
+    border-bottom: 1px solid #dfe7ee;
+    vertical-align: top;
+    text-align: left;
+}
+
+.table th {
+    background: #eff4f9;
+}
+
+.inline-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.inline-form input,
+.inline-form select {
+    border: 1px solid #c5d1dc;
+    border-radius: 8px;
+    padding: 0.35rem 0.5rem;
+}
+
+.stack-actions {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #c7d6e5;
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8rem;
+    color: #274361;
+    background: #f3f8fd;
+}
+
+.badge--ok {
+    border-color: #a8d7b4;
+    color: #1f6f37;
+    background: #e8f7ec;
+}
+
+.badge--off {
+    border-color: #d7c4c4;
+    color: #6a2a2a;
+    background: #f9ecec;
+}
+
+.assignment-list {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.assignment-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.small {
+    font-size: 0.85rem;
+}
+
+.muted {
+    color: #5f7082;
+}
+
+.btn--danger {
+    border-color: #be5d5d;
+    background: #f7dede;
+    color: #5e1717;
+}
+
+.btn--danger:hover {
+    background: #efcdcd;
+}
+
+.token {
+    display: inline-block;
+    margin-top: 0.4rem;
+    padding: 0.3rem 0.45rem;
+    border-radius: 6px;
+    border: 1px solid #c5d1dc;
+    background: #ffffff;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.85rem;
+    word-break: break-all;
+}
+
+.kv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1rem;
+}
+
+.actions-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.form-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+@media (max-width: 780px) {
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .topbar__nav {
+        flex-wrap: wrap;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .span-2 {
+        grid-column: span 1;
+    }
+
+    .kv-grid {
+        grid-template-columns: 1fr;
+    }
+}

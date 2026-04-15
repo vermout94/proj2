@@ -1,0 +1,58 @@
+<section class="card">
+    <h1>My Drones</h1>
+    <p>This page lists drones you can access. `read` allows monitoring; `full` also allows control actions.</p>
+
+    <% const drones_safe = Array.isArray(drones) ? drones : []; %>
+    <% if (drones_safe.length === 0) { %>
+        <section class="panel">
+            <p class="muted">No drones are currently assigned to your account.</p>
+        </section>
+    <% } else { %>
+        <section class="panel">
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Drone ID</th>
+                        <th>Display Name</th>
+                        <th>Access</th>
+                        <th>Connection</th>
+                        <th>Active</th>
+                        <th>Locked</th>
+                        <th>Last Seen</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% drones_safe.forEach(function(d) { %>
+                        <tr>
+                            <td><strong><%= d.drone_id %></strong></td>
+                            <td><%= d.display_name ? d.display_name : '-' %></td>
+                            <td>
+                                <% if (String(d.access_level) === 'full') { %>
+                                    <span class="badge badge--ok">full</span>
+                                <% } else { %>
+                                    <span class="badge">read</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (Number(d.is_connected) === 1) { %>
+                                    <span class="badge badge--ok">Connected</span>
+                                <% } else { %>
+                                    <span class="badge badge--off">Disconnected</span>
+                                <% } %>
+                            </td>
+                            <td><%= Number(d.is_active) === 1 ? 'yes' : 'no' %></td>
+                            <td><%= Number(d.is_locked) === 1 ? 'yes' : 'no' %></td>
+                            <td><span class="small"><%= d.last_seen_at ? String(d.last_seen_at) : 'n/a' %></span></td>
+                            <td>
+                                <a class="btn btn--secondary" href="/my-drones/<%= encodeURIComponent(d.drone_id) %>">Open</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    <% } %>
+</section>
